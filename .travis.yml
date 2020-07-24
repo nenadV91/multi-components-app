@@ -1,0 +1,24 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t nvracar/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run nvracar/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t nvracar/multi-client ./client
+  - docker build -t nvracar/multi-nginx ./nginx
+  - docker build -t nvracar/multi-server ./server
+  - docker build -t nvracar/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push nvracar/multi-client
+  - docker push nvracar/multi-nginx
+  - docker push nvracar/multi-server
+  - docker push nvracar/multi-worker
+
+
